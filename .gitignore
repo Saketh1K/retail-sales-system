@@ -4,6 +4,7 @@ node_modules/
 dist/
 coverage/
 *.db
+!backend/sales_demo.db
 *.csv
 truestate_assignment_dataset.csv
 backend/sales.db
