@@ -1,16 +1,85 @@
-# React + Vite
+# Retail Sales Management - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A responsive, high-performance dashboard for analyzing retail transaction data. Built with React and Vite, this application focuses on speed, usability, and clean aesthetics.
 
-Currently, two official plugins are available:
+##  Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- ** Data Visualization**: Interactive table displaying sales transactions with status indicators (Completed, Pending, Failed).
+- **  Advanced Search**: Real-time, debounced search capability for Customer Names and Phone Numbers.
+- **Multifaceted Filtering**: 
+  - **Categorical**: Region, Product Category, Payment Method, Status.
+  - **Numerical/Date**: Price Range, Age Group, Date Range.
+- **Sortable Columns**: Dynamic sorting for Dates, Quantities, and Customer details.
+- **Pagination**: Server-side pagination with adjustable page sizes.
+- **Real-time Statistics**: Dashboard header updates instantly with Total Sales Volume and Transaction Counts reflecting the current filter view.
 
-## React Compiler
+##  Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Core**: React 18
+- **Build Tool**: Vite (Lightning fast HMR)
+- **Styling**: Vanilla CSS 3 (CSS Variables, Flexbox, Grid, Glassmorphism effects)
+- **HTTP Client**: Axios
+- **Icons**: Lucide React
+- **Checking**: ESLint
 
-## Expanding the ESLint configuration
+## Installation & Setup
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 1. Prerequisites
+Ensure you have the backend server running (default: `http://localhost:5000`).
+
+### 2. Install Dependencies
+Navigate to the frontend directory and install the required packages:
+
+```bash
+cd frontend
+npm install
+```
+
+### 3. Environment Configuration
+The application connects to the backend API. By default, it looks for `http://localhost:5000/api`.
+To override this (e.g., for local testing against a different port), create a `.env` file:
+
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
+```
+
+*Note: Production deployments (like Vercel) automatically use `.env.production`.*
+
+### 4. Run Development Server
+Start the local development server:
+
+```bash
+npm run dev
+```
+Access the app at `http://localhost:5173`.
+
+### 5. Build for Production
+To generate the optimized static files for deployment:
+
+```bash
+npm run build
+```
+The output will be in the `dist/` folder.
+
+## 📂 Project Structure
+
+```text
+src/
+├── components/        # Reusable UI components
+│   ├── FilterPanel.jsx    # Sidebar for applying complex filters
+│   ├── Header.jsx         # Top bar with stats and theme controls
+│   ├── Pagination.jsx     # Page navigation controls
+│   ├── SalesTable.jsx     # Main data grid
+│   └── SearchBar.jsx      # Global search input
+├── services/          # API integration
+│   └── api.js             # Axios instance and endpoint functions
+├── App.jsx            # Main Layout and State Management
+├── index.css          # Global styles and CSS variables
+└── main.jsx           # Application Entry Point
+```
+
+## 🎨 Design Philosophy
+The UI follows a **"Clean & Modern"** aesthetic, utilizing:
+- **Light Theme**: Crisp white backgrounds with subtle gray borders.
+- **Visual Hierarchies**: Bold metrics for totals, distinct badges for contract statuses.
+- **Feedback**: Loading states, hover effects, and smooth transitions.

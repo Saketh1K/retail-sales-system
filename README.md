@@ -1,49 +1,111 @@
 # Retail Sales Management System
 
+A high-performance retail analytics dashboard processing **1 Million+ records** with real-time search, filtering, and aggregation.
+
+---
+
 ## 1. Overview
-A high-performance retail analytics dashboard built with Node.js and React. It processes a large dataset of sales transactions, providing real-time search, multi-faceted filtering, and dynamic aggregation (Total Sales, Status Breakdown). The application features a clean, responsive light-themed UI with server-side processing for optimal performance.
+This project is a full-stack web application designed to handle large datasets efficiently using a lightweight stack. It demonstrates comprehensive CRUD capabilities (Read-heavy), complex SQL filtering, and server-side aggregation without relying on heavy external database services.
 
 ## 2. Tech Stack
-- **Frontend**: React (Vite), Vanilla CSS (Light Mode), Axios, Lucide Icons.
-- **Backend**: Node.js, Express.js, SQLite (sqlite3).
-- **Architecture**: Client-Server with REST API.
+- **Frontend:** React (Vite), Vanilla CSS, Axios, Lucide Icons.
+- **Backend:** Node.js, Express.js.
+- **Database:** SQLite (Native `sqlite3`).
+- **Deployment:** 
+  - Frontend: **Vercel**
+  - Backend: **Render** (Node.js Environment)
 
-## 3. Search Implementation Summary
-Full-text search logic is implemented using SQL `LIKE` operators with wildcards (`%query%`). It targets `customer_name` and `phone` columns. The database is indexed on these fields to ensure sub-100ms response times. The frontend uses a custom hook with debouncing to manage API requests efficiently.
+---
 
-## 4. Filter Implementation Summary
-Server-side filtering is achieved by dynamically constructing SQL `WHERE` clauses based on active parameters.
-- **Multi-select**: Region, Category, Gender, Payment Method (using `IN` clause).
-- **Range Filters**: Date and Age (using `>=` and `<=` operators).
-- **Tags**: Keyword matching using `LIKE`.
-- **Aggregation**: The backend calculates `SUM(final_amount)` and group-wise counts for the filtered dataset in the same request cycle to ensure stats match the view.
+## 3. Key Features
 
-## 5. Sorting Implementation Summary
-Sorting is handled via dynamic SQL `ORDER BY` clauses. Users can sort by Date, Quantity, or Customer Name. The implementation preserves all active search and filter states, ensuring consistent data presentation across pages.
+### Optimized Search
+- Full-text search on `Customer Name` and `Phone Number`.
+- SQL `LIKE` queries optimized with database indexes (`idx_customer_name`, `idx_phone`).
+- Debounced API calls to minimize server load.
 
-## 6. Pagination Implementation Summary
-Server-side pagination uses SQL `LIMIT` and `OFFSET`. Along with the paginated data rows, the API returns global metadata for the current filter set (Total Records, Total Sales Volume, Status Breakdown). This allows the UI to display accurate "Page X of Y" and summary statistics without fetching the entire dataset.
+###  Advanced Filtering & Aggregation
+- **Multi-select:** Region, Category, Payment Method.
+- **Range Filters:** Price range, Date range.
+- **Smart Totals:** Calculating `Sum(Total Sales)` and `Count(Transactions)` dynamically based on active filters in < 50ms.
 
-## 7. Setup Instructions
+###  Engineering Highlights (Database Strategy)
+Processing 1 Million records (300MB+) on free-tier hosting presented unique challenges. We implemented a dual-strategy:
+
+1.  **Local Development:** Uses the raw `sales.db` (300MB).
+2.  **Production (Render):**
+    *   GitHub strictly limits files to 100MB.
+    *   We compressed the database into `backend/sales_full.zip` (~88MB).
+    *   **Auto-Unzip:** A custom startup script (`unzip_db.js`) detects the zip file, extracts the full 1M record database on server boot, and connects to it.
+    *   **Graceful Fallback:** If extraction fails, it defaults to `sales_demo.db` (5,000 records) to ensure the API never crashes.
+    *   **Read-Only Mode:** The production database opens in `OPEN_READONLY` mode to prevent file-locking issues common in serverless/containerized SQLite environments.
+
+---
+
+## 4. Setup Instructions
+
 ### Prerequisites
-- Node.js (v16+)
+- Node.js (v18+)
 - npm
 
-### 1. Backend Setup
-```bash
-cd backend
-npm install
-npm run seed  # Parses CSV and populates SQLite DB
-npm start     # Runs server on port 5000
+### Installation
+
+1.  **Backend Setup:**
+    ```bash
+    cd backend
+    npm install
+    
+    # Optional: Seed the full database from CSV (takes ~2-3 mins)
+    # npm run seed
+    
+    # Start Server (Auto-unzips if zip is present)
+    npm start
+    ```
+    *Server runs on `http://localhost:5000`*
+
+2.  **Frontend Setup:**
+    ```bash
+    cd frontend
+    npm install
+    
+    # Create .env file for local dev
+    echo "VITE_API_BASE_URL=http://localhost:5000/api" > .env
+    
+    # Start Client
+    npm run dev
+    ```
+    *Client runs on `http://localhost:5173`*
+
+---
+
+## 5. API Endpoints
+
+### `GET /api/sales`
+Main endpoint for fetching transaction data.
+
+**Parameters:**
+- `page` (default: 1)
+- `limit` (default: 10)
+- `search` (customer name or phone)
+- `region`, `category`, `paymentMethod` (comma-separated list)
+- `startDate`, `endDate` (YYYY-MM-DD)
+- `minAge`, `maxAge`
+- `sortBy` (date, quantity, etc.)
+- `sortOrder` (asc/desc)
+
+**Response:**
+```json
+{
+  "data": [...],
+  "pagination": {
+    "total": 1000000,
+    "totalSales": 54200392.50,
+    "statusStats": { "Completed": 800, "Pending": 200 ... },
+    "page": 1,
+    "limit": 10
+  }
+}
 ```
 
-### 2. Frontend Setup
-```bash
-cd frontend
-npm install
-npm run build # For production build
-npm run dev   # Runs development server
-```
-
-### 3. Deployment
-Refer to `DEPLOYMENT.md` for detailed steps on deploying to Render (Backend) and Vercel (Frontend).
+### `GET /api/sales/meta`
+Returns distinct values for filters (Regions, Categories, Payment Methods) to populate the UI dropdowns dynamically.
