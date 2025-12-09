@@ -37,7 +37,6 @@ Processing 1 Million records (300MB+) on free-tier hosting presented unique chal
     *   GitHub strictly limits files to 100MB.
     *   We compressed the database into `backend/sales_full.zip` (~88MB).
     *   **Auto-Unzip:** A custom startup script (`unzip_db.js`) detects the zip file, extracts the full 1M record database on server boot, and connects to it.
-    *   **Graceful Fallback:** If extraction fails, it defaults to `sales_demo.db` (5,000 records) to ensure the API never crashes.
     *   **Read-Only Mode:** The production database opens in `OPEN_READONLY` mode to prevent file-locking issues common in serverless/containerized SQLite environments.
 
 ---
