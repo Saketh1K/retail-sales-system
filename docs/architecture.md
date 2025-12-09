@@ -1,76 +1,53 @@
 # System Architecture
 
-## 1. Backend Architecture
-The backend is built with **Node.js** and **Express.js**, following a clean **MVC (Model-View-Controller)** separation of concerns (though "Model" here is replaced by a Service/Data layer since we use an in-memory dataset).
+## Overview
+The Retail Sales Management System is a full-stack web application designed to handle large datasets of retail transactions. It provides a responsive interface for searching, filtering, and analyzing sales data.
 
-- **Server:** `app.js` initializes the Express app, middleware (CORS, JSON parser), and mounts routes.
-- **Routing:** `salesRoutes.js` maps HTTP endpoints (e.g., `GET /sales`) to controller functions.
-- **Controller:** `salesController.js` parses incoming requests (query parameters for search/filter), delegates business logic to the service layer, and handles HTTP responses.
-- **Service:** `salesService.js` contains the core business logic. It handles data filtering, sorting, pagination, and statistical aggregation.
-- **Data Access:** `dataLoader.js` (Utils) is responsible for reading and parsing the CSV dataset into memory upon server startup.
+## Backend Architecture
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: SQLite (using `sqlite3` driver)
+  - SQLite was chosen for its zero-configuration, self-contained nature, and ability to handle the provided dataset effectively within a local environment.
+  - **WAL Mode**: Write-Ahead Logging is enabled to support higher concurrency.
+- **Data Ingestion**: A custom seeding script streams the CSV dataset, creating an optimized database table with appropriate indices for performant search and filtering.
 
-## 2. Frontend Architecture
-The frontend is a **Next.js** application emphasizing a responsive and interactive user experience.
+### Modules
+- **Controllers**: Handle business logic and SQL query construction (`salesController.js`).
+- **Routes**: Define API endpoints (`salesRoutes.js`).
+- **Utils**: Database connection singleton (`db.js`).
 
-- **Routing:** Uses Next.js file-system based routing (App Router).
-- **State Management:** React `useState` and `useEffect` hooks manage local UI state (search queries, active filters, sort options) and data fetching side effects.
-- **Component Design:** Modular components (Search, Filter, Table, Pagination) promote reusability and maintainability.
-- **Styling:** Vanilla CSS Modules provide scoped and collision-free styling for components.
-- **API Integration:** A dedicated `api.js` service parses frontend state into URL query parameters and handles asynchronous data fetching.
+## Frontend Architecture
+- **Framework**: React (Vite)
+- **Styling**: Vanilla CSS with CSS Variables for consistent theming and dark mode.
+- **State Management**: Custom Hook (`useSales`) manages API state, debouncing, and filter synchronization.
+- **Components**: Modular components for Table, Filters, and Pagination.
 
-## 3. Data Flow
-1.  **User Interaction:** User updates a filter, types a search query, or changes a page in the UI.
-2.  **Request Construction:** Frontend `api.js` constructs a URL with query parameters (e.g., `?q=phone&region=North&sort=date_desc`).
-3.  **API Call:** Next.js sends an HTTP GET request to the Express backend.
-4.  **Request Handling:** Express Router directs the request to `salesController`.
-5.  **Processing:** `salesService` filters the in-memory data array, sorts it, and calculates pagination/stats.
-6.  **Response:** A JSON object containing the data slice, pagination metadata, and statistics is returned.
-7.  **Rendering:** Frontend updates its state with the new data and re-renders the Transaction Table and Dashboard.
+## Data Flow
+1. **User Interaction**: User updates filters/search in the React UI.
+2. **State Update**: `useSales` hook debounces the input.
+3. **API Request**: Axios sends a GET request with query parameters to `/api/sales`.
+4. **Query Construction**: Express controller dynamically builds the SQL `WHERE` clause based on active filters.
+5. **Database Execution**: SQLite executes the optimized query (utilizing indices on `customer_name`, `phone`, `date`, etc.).
+6. **Response**: JSON data + pagination metadata is returned to the client.
+7. **Render**: UI updates the table and pagination controls.
 
-## 4. Folder Structure
-
-### Backend
+## Folder Structure
 ```
-backend/
-├── src/
-│   ├── app.js                 # Entry point, app config
-│   ├── controllers/
-│   │   └── salesController.js # Request parsing, response formatting
-│   ├── routes/
-│   │   └── salesRoutes.js     # API Route definitions
-│   ├── services/
-│   │   └── salesService.js    # Business logic (Filter/Sort/Search)
-│   └── utils/
-│       └── dataLoader.js      # CSV Parser and data loading
-├── package.json
-└── truestate_assignment_dataset.csv
+root/
+├── backend/
+│   ├── src/
+│   │   ├── controllers/   # Business logic
+│   │   ├── routes/        # API definitions
+│   │   ├── utils/         # DB connection
+│   │   ├── scripts/       # Data seeding
+│   │   └── index.js       # Entry point
+│   └── sales.db           # SQLite Database (generated)
+├── frontend/
+│   ├── src/
+│   │   ├── components/    # UI Components
+│   │   ├── hooks/         # Logic hooks
+│   │   ├── services/      # API calls
+│   │   └── ...
+│   └── ...
+└── docs/                  # Documentation
 ```
-
-### Frontend
-```
-frontend/
-├── src/
-│   ├── app/                   # Next.js App Router pages
-│   ├── components/            # Reusable UI components
-│   │   ├── FilterPanel.js
-│   │   ├── Pagination.js
-│   │   ├── SalesTable.js
-│   │   ├── SearchBar.js
-│   │   ├── SortDropdown.js
-│   │   └── StatsDashboard.js
-│   └── services/
-│       └── api.js             # API fetch functions
-├── public/                    # Static assets
-└── package.json
-```
-
-## 5. Module Responsibilities
-
-| Module | Responsibility |
-| :--- | :--- |
-| **salesController.js** | Extracts `req.query`, sanitizes inputs (ensuring arrays for filters), and calls `salesService`. Returns JSON or Error. |
-| **salesService.js** | Implements the core logic: full-text search, multi-faceted filtering (AND/OR logic), sorting (Date/Qty/Name), and pagination slicing. implementation. |
-| **dataLoader.js** | Reads the local CSV file using `csv-parser` and stores the result in a global variable for fast access. |
-| **api.js (Frontend)** | Abstraction layer for HTTP requests. Converts a complex JS object of filters into a standard URL query string. |
-| **SalesTable.js** | Displays transaction data in a responsive table. Handles empty states. |
-| **FilterPanel.js** | Renders dynamic filter options (checkboxes, ranges) fetched from the backend (`/sales/options`). |

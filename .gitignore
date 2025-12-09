@@ -1,1 +1,9 @@
+node_modules/
+.env
+.DS_Store
+dist/
+coverage/
+*.db
+*.csv
 truestate_assignment_dataset.csv
+backend/sales.db

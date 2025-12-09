@@ -1,54 +1,48 @@
 # Retail Sales Management System
 
-## Overview
-A production-ready Retail Sales Management System incorporating a Node.js/Express backend and a Next.js frontend. The application processes a provided dataset to offer efficient sales tracking, featuring advanced search, multi-faceted filtering, sorting, and server-side pagination capabilities, along with a clean, responsive user interface.
+## 1. Overview
+A high-performance retail analytics dashboard built with Node.js and React. It processes a large dataset of sales transactions, offering real-time search, multi-faceted filtering, and sorting capabilities wrapped in a modern, responsive user interface.
 
-## Tech Stack
-- **Frontend:** Next.js, React, Vanilla CSS (Module-based)
-- **Backend:** Node.js, Express.js
-- **Data Processing:** csv-parser
-- **Data Store:** In-memory array (loaded from CSV)
+## 2. Tech Stack
+- **Frontend**: React (Vite), Vanilla CSS (Dark Mode), Axios, Lucide Icons.
+- **Backend**: Node.js, Express.js, SQLite (sqlite3).
+- **Architecture**: Client-Server with REST API.
 
-## Search Implementation Summary
-Full-text search logic is implemented in the backend service. It performs case-insensitive matching against:
-- **Customer Name**
-- **Phone Number**
-The search query (`?q=...`) filters the in-memory dataset before applying specific field filters.
+## 3. Search Implementation Summary
+Full-text search logic is implemented in the backend using SQL `LIKE` operators with wildcards (`%query%`). It targets `customer_name` and `phone` columns. The database is indexed on these fields to ensure sub-100ms response times even with large datasets. The frontend debounces input to minimize API load.
 
-## Filter Implementation Summary
-Multi-faceted filtering supports single and multiple values. The backend parses query parameters into structured filter objects:
-- **Exact Matches:** Region, Gender, Category, Payment Method (supports multiple selections, e.g., `region=North&region=South`).
-- **Tag Matching:** Checks if selected tags exist within the comma-separated `Tags` field of a record.
-- **Range Queries:** 
-  - Age (`minAge`, `maxAge`)
-  - Date (`startDate`, `endDate`)
+## 4. Filter Implementation Summary
+Filtering is handled dynamically on the server. The `salesController` constructs a flexible SQL `WHERE` clause.
+- **Multi-select**: Region, Category, Gender, Payment Method use `IN (...)` clauses.
+- **Ranges**: Date and Age use `>=` and `<=` operators.
+- **Tags**: Implemented using `LIKE` with logical OR combinations for multiple tag inputs.
+Metadata for filter options is dynamically fetched from the database to ensure accuracy.
 
-## Sorting Implementation Summary
-Sorting is handled dynamically based on the `sort` query parameter:
-- **Date:** `date_desc` (Newest first), `date_asc` (Oldest first)
-- **Quantity:** `quantity_desc` (High to Low), `quantity_asc` (Low to High)
-- **Customer Name:** `name_asc` (A-Z), `name_desc` (Z-A)
-Defaults to `date_desc` if no sort parameter is provided.
+## 5. Sorting Implementation Summary
+Sorting is server-side to handle pagination correctly. The user can sort by Date, Quantity, or Customer Name. The SQL `ORDER BY` clause is dynamically updated based on the user's selection, preserving all active filters and search contexts.
 
-## Pagination Implementation Summary
-Server-side pagination logic ensures efficient data delivery:
-- Accepts `page` (default 1) and `limit` (default 10) parameters.
-- Calculates `startIndex` and `endIndex` to slice the processed result set.
-- Returns `data` (current page items) along with `pagination` metadata (total items, total pages, current page, items per page).
+## 6. Pagination Implementation Summary
+Server-side pagination is implemented using SQL `LIMIT` and `OFFSET`. The frontend calculates total pages based on the `count(*)` returned by the backend (filtered count). The UI provides Next/Previous controls that update the page state, triggering a data refresh while keeping filters intact.
 
-## Setup Instructions
-1. **Backend Setup:**
-   ```bash
-   cd backend
-   npm install
-   npm start
-   # Server runs on http://localhost:5000
-   ```
+## 7. Setup Instructions
+### Prerequisites
+- Node.js (v16+)
+- npm
 
-2. **Frontend Setup:**
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   # App runs on http://localhost:3000
-   ```
+### 1. Backend Setup & Data Seeding
+```bash
+cd backend
+npm install
+npm run seed  # Parses CSV and populates SQLite DB (takes ~1-2 mins)
+npm start     # Runs server on port 5000
+```
+
+### 2. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev   # Runs React app on port 5173
+```
+
+### 3. Access
+Open [http://localhost:5173](http://localhost:5173) in your browser.

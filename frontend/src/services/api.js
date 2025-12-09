@@ -1,35 +1,10 @@
-const API_BASE_URL = 'http://localhost:5000/sales';
+import axios from 'axios';
 
-export const fetchSales = async (params) => {
-    const queryParams = new URLSearchParams();
+const api = axios.create({
+    baseURL: 'http://localhost:5000/api',
+});
 
-    if (params.q) queryParams.append('q', params.q);
-    if (params.sort) queryParams.append('sort', params.sort);
-    if (params.page) queryParams.append('page', params.page);
-    if (params.limit) queryParams.append('limit', params.limit);
+export const fetchSales = (params) => api.get('/sales', { params });
+export const fetchMetadata = () => api.get('/sales/meta');
 
-    // Filters
-    if (params.filters) {
-        Object.entries(params.filters).forEach(([key, value]) => {
-            if (Array.isArray(value)) {
-                value.forEach(v => queryParams.append(key, v));
-            } else if (value !== undefined && value !== null && value !== '') {
-                queryParams.append(key, value);
-            }
-        });
-    }
-
-    const response = await fetch(`${API_BASE_URL}?${queryParams.toString()}`);
-    if (!response.ok) {
-        throw new Error('Failed to fetch sales data');
-    }
-    return response.json();
-};
-
-export const fetchFilterOptions = async () => {
-    const response = await fetch(`${API_BASE_URL}/options`);
-    if (!response.ok) {
-        throw new Error('Failed to fetch filter options');
-    }
-    return response.json();
-};
+export default api;
