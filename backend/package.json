@@ -4,16 +4,17 @@
     "description": "Backend for Retail Sales Management System",
     "main": "src/index.js",
     "scripts": {
-        "start": "node src/index.js",
+        "start": "node src/scripts/unzip_db.js && node src/index.js",
         "dev": "nodemon src/index.js",
         "seed": "node src/scripts/seed.js"
     },
     "dependencies": {
-        "sqlite3": "^5.1.7",
+        "adm-zip": "^0.5.16",
         "cors": "^2.8.5",
         "csv-parser": "^3.0.0",
         "dotenv": "^16.3.1",
-        "express": "^4.18.2"
+        "express": "^4.18.2",
+        "sqlite3": "^5.1.7"
     },
     "devDependencies": {
         "nodemon": "^3.0.1"

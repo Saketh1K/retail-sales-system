@@ -5,6 +5,7 @@ dist/
 coverage/
 *.db
 !backend/sales_demo.db
+!backend/sales_full.zip
 *.csv
 truestate_assignment_dataset.csv
 backend/sales.db
