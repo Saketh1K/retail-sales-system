@@ -1,3 +1,4 @@
+
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
@@ -19,7 +20,13 @@ const db = new sqlite3.Database(dbPath, isReadOnly ? sqlite3.OPEN_READONLY : sql
     if (err) {
         console.error(`Could not connect to database at ${dbPath}`, err);
     } else {
-        console.log(`Connected to SQLite database: ${dbName} at ${dbPath} (ReadOnly: ${isReadOnly})`);
+        try {
+            const stats = fs.statSync(dbPath);
+            console.log(`Connected to SQLite database: ${dbName} at ${dbPath} (Size: ${(stats.size / 1024 / 1024).toFixed(2)} MB, ReadOnly: ${isReadOnly})`);
+        } catch (e) {
+            console.log(`Connected to SQLite database: ${dbName} (Size check failed, ReadOnly: ${isReadOnly})`);
+        }
+
         if (!isReadOnly) {
             db.run("PRAGMA journal_mode = WAL;");
         }
